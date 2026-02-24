@@ -51,13 +51,13 @@ You know exactly which classes apply to different business types:
 Use these commands:
 ```bash
 # Parallel exact search across multiple classes (preferred)
-cd /Users/gabriel.packer/code/gkpacker/tools/inpi-checker && mix inpi "BrandName" 9,36,42 --parallel
+mix inpi "BrandName" 9,36,42 --parallel
 
 # Single class exact search
-cd /Users/gabriel.packer/code/gkpacker/tools/inpi-checker && mix inpi "BrandName" 36 --mode exact
+mix inpi "BrandName" 36 --mode exact
 
 # Radical search for variations
-cd /Users/gabriel.packer/code/gkpacker/tools/inpi-checker && mix inpi "BrandName Finance" 36 --mode radical
+mix inpi "BrandName Finance" 36 --mode radical
 ```
 
 **Step 4: Interpret Results**

@@ -42,17 +42,17 @@ Radical searches (parallel, based on context):
 
 ```bash
 # Single exact search
-cd /Users/gabriel.packer/code/gkpacker/tools/inpi-checker && mix inpi "BrandName" 9 --mode exact
+mix inpi "BrandName" 9 --mode exact
 
 # Parallel exact search across multiple classes (recommended)
-cd /Users/gabriel.packer/code/gkpacker/tools/inpi-checker && mix inpi "BrandName" 9,36,42 --parallel
+mix inpi "BrandName" 9,36,42 --parallel
 
 # IMPORTANT: For compound words, also search spaced version with radical mode
-cd /Users/gabriel.packer/code/gkpacker/tools/inpi-checker && mix inpi "BRAND NAME" 36 --mode radical
+mix inpi "BRAND NAME" 36 --mode radical
 
 # Radical searches for variations
-cd /Users/gabriel.packer/code/gkpacker/tools/inpi-checker && mix inpi "BrandName Finance" 36 --mode radical
-cd /Users/gabriel.packer/code/gkpacker/tools/inpi-checker && mix inpi "BrandName App" 9 --mode radical
+mix inpi "BrandName Finance" 36 --mode radical
+mix inpi "BrandName App" 9 --mode radical
 ```
 
 ### Step 4: MANDATORY - Call brazil-trademark-specialist Agent

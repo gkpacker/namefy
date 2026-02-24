@@ -16,13 +16,17 @@ Searches the INPI database by brand name and [Nice Classification](https://www.w
 
 ## Requirements
 
-- Elixir ~> 1.18
+- Erlang/OTP 28
+- Elixir ~> 1.19
 - INPI account (optional - anonymous access is supported)
+
+Versions are pinned in `.mise.toml` for use with [mise](https://mise.jdx.dev/).
 
 ## Setup
 
 ```bash
 git clone <repo-url> && cd namefy
+mise install
 mix deps.get
 cp .env.example .env
 ```
