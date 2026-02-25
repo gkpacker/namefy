@@ -40,6 +40,12 @@ INPI_PASSWORD=your_password
 
 ## Usage
 
+### WebInterface
+
+```bash
+mix run --no-halt
+```
+
 ### Exact search in a single class
 
 ```bash
