@@ -27,7 +27,9 @@ defmodule InpiChecker.MixProject do
       {:req, "~> 0.5"},
       {:floki, "~> 0.36"},
       {:jason, "~> 1.4"},
-      {:dotenvy, "~> 0.8"}
+      {:dotenvy, "~> 0.8"},
+      {:bandit, "~> 1.6"},
+      {:plug, "~> 1.16"}
     ]
   end
 end
