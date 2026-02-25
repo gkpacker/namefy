@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Namefy — INPI Brand Checker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1a1a1a; background: #fafafa; line-height: 1.5; }
+    .container { max-width: 720px; margin: 0 auto; padding: 2rem 1rem; }
+    h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; }
+    h1 span { color: #888; font-weight: 400; }
+
+    /* Form */
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.25rem; color: #555; }
+    input[type="text"] { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; }
+    input[type="text"]:focus { outline: none; border-color: #333; }
+
+    .mode-toggle { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .mode-toggle button { padding: 0.4rem 1rem; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-size: 0.85rem; }
+    .mode-toggle button.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+
+    .presets { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
+    .presets button { padding: 0.3rem 0.7rem; border: 1px solid #ddd; border-radius: 20px; background: #fff; cursor: pointer; font-size: 0.75rem; color: #555; }
+    .presets button:hover { border-color: #999; }
+
+    .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.3rem; margin-bottom: 1rem; max-height: 300px; overflow-y: auto; padding: 0.5rem; border: 1px solid #eee; border-radius: 6px; background: #fff; }
+    .class-grid label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; cursor: pointer; padding: 0.2rem 0.3rem; border-radius: 4px; color: #1a1a1a; }
+    .class-grid label:hover { background: #f5f5f5; }
+    .class-grid input[type="checkbox"] { accent-color: #1a1a1a; }
+
+    .btn-search { width: 100%; padding: 0.7rem; background: #1a1a1a; color: #fff; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: 500; }
+    .btn-search:hover { background: #333; }
+    .btn-search:disabled { background: #999; cursor: not-allowed; }
+
+    /* Loading */
+    .loading { text-align: center; padding: 2rem 0; display: none; }
+    .loading.visible { display: block; }
+    .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #ddd; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { margin-top: 0.5rem; color: #888; font-size: 0.85rem; }
+
+    /* Results */
+    #results { margin-top: 1.5rem; }
+    .banner { padding: 0.75rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.95rem; margin-bottom: 1rem; }
+    .banner.CLEAR { background: #e6f9e6; color: #1a7a1a; }
+    .banner.CAUTION { background: #fff8e0; color: #8a6d00; }
+    .banner.BLOCKED { background: #fde8e8; color: #b91c1c; }
+    .banner.ERROR { background: #f3f3f3; color: #666; }
+
+    .result-card { border: 1px solid #eee; border-radius: 6px; margin-bottom: 0.75rem; background: #fff; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; cursor: pointer; }
+    .card-header:hover { background: #fafafa; }
+    .card-class { font-weight: 600; }
+    .card-desc { color: #888; font-size: 0.85rem; }
+    .badge { padding: 0.15rem 0.5rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge.CLEAR { background: #e6f9e6; color: #1a7a1a; }
+    .badge.CAUTION { background: #fff8e0; color: #8a6d00; }
+    .badge.BLOCKED { background: #fde8e8; color: #b91c1c; }
+    .badge.ERROR { background: #f3f3f3; color: #666; }
+
+    .card-body { padding: 0 1rem 0.75rem; display: none; }
+    .card-body.open { display: block; }
+
+    .conflict-section { margin-bottom: 0.5rem; }
+    .conflict-section h4 { font-size: 0.8rem; color: #555; margin-bottom: 0.3rem; cursor: pointer; }
+    .conflict-section h4:hover { color: #1a1a1a; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th { text-align: left; padding: 0.3rem 0.5rem; border-bottom: 1px solid #eee; color: #888; font-weight: 500; }
+    td { padding: 0.3rem 0.5rem; border-bottom: 1px solid #f5f5f5; }
+
+    .error-msg { color: #b91c1c; padding: 1rem; background: #fde8e8; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Namefy <span>— INPI Brand Checker</span></h1>
+
+    <div class="form-group">
+      <label for="brand">Nome da marca</label>
+      <input type="text" id="brand" placeholder="Ex: Horizon, Nubank, PayFlow..." autofocus>
+    </div>
+
+    <label>Modo de busca</label>
+    <div class="mode-toggle">
+      <button class="active" data-mode="exact">Exact</button>
+      <button data-mode="radical">Radical</button>
+    </div>
+
+    <label>Classes Nice</label>
+    <div class="presets">
+      <button data-classes="9,36,42">Fintech</button>
+      <button data-classes="9,35,42">E-commerce</button>
+      <button data-classes="9,35,42">SaaS</button>
+      <button data-classes="29,30,43">Restaurante</button>
+      <button data-classes="25,35">Vestuário</button>
+      <button data-classes="9,41,42">Educação</button>
+    </div>
+    <div class="class-grid" id="classGrid"></div>
+
+    <button class="btn-search" id="searchBtn">Pesquisar no INPI</button>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p id="loadingMsg">Pesquisando no INPI... pode levar até 5 minutos</p>
+    </div>
+
+    <div id="results"></div>
+  </div>
+
+  <script>
+    const classGrid = document.getElementById('classGrid');
+    const searchBtn = document.getElementById('searchBtn');
+    const loading = document.getElementById('loading');
+    const resultsDiv = document.getElementById('results');
+    let mode = 'exact';
+
+    // Load classes
+    fetch('/api/classes').then(r => r.json()).then(classes => {
+      classes.forEach(c => {
+        const label = document.createElement('label');
+        label.innerHTML = `<input type="checkbox" value="${c.number}"> <strong>${c.number}</strong> — ${c.description}`;
+        classGrid.appendChild(label);
+      });
+    });
+
+    // Mode toggle
+    document.querySelectorAll('.mode-toggle button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-toggle button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        mode = btn.dataset.mode;
+      });
+    });
+
+    // Presets
+    document.querySelectorAll('.presets button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const selected = btn.dataset.classes.split(',').map(Number);
+        classGrid.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          cb.checked = selected.includes(Number(cb.value));
+        });
+      });
+    });
+
+    // Search
+    searchBtn.addEventListener('click', async () => {
+      const brand = document.getElementById('brand').value.trim();
+      const classes = [...classGrid.querySelectorAll('input:checked')].map(cb => Number(cb.value));
+
+      if (!brand) return alert('Digite o nome da marca');
+      if (!classes.length) return alert('Selecione pelo menos uma classe');
+
+      searchBtn.disabled = true;
+      loading.classList.add('visible');
+      resultsDiv.innerHTML = '';
+
+      // Elapsed timer
+      const loadingMsg = document.getElementById('loadingMsg');
+      const startTime = Date.now();
+      const timer = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        loadingMsg.textContent = `Pesquisando no INPI... ${elapsed}s (pode levar até 5 minutos)`;
+      }, 1000);
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000);
+
+        const res = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brand, classes, mode }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          resultsDiv.innerHTML = `<div class="error-msg">Resposta inválida do servidor: ${text.slice(0, 200)}</div>`;
+          return;
+        }
+
+        if (data.error) {
+          resultsDiv.innerHTML = `<div class="error-msg">${data.error}</div>`;
+          return;
+        }
+
+        renderResults(data, brand);
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          resultsDiv.innerHTML = `<div class="error-msg">Timeout: a pesquisa demorou mais de 5 minutos. Tente com menos classes.</div>`;
+        } else {
+          resultsDiv.innerHTML = `<div class="error-msg">Erro de conexão: ${err.message}. Verifique se o servidor está rodando.</div>`;
+        }
+      } finally {
+        clearInterval(timer);
+        searchBtn.disabled = false;
+        loading.classList.remove('visible');
+        loadingMsg.textContent = 'Pesquisando no INPI... pode levar até 5 minutos';
+      }
+    });
+
+    // Allow Enter key
+    document.getElementById('brand').addEventListener('keydown', e => {
+      if (e.key === 'Enter') searchBtn.click();
+    });
+
+    function renderResults(results, brand) {
+      const worst = results.reduce((w, r) => {
+        const rank = { BLOCKED: 3, CAUTION: 2, ERROR: 1, CLEAR: 0 };
+        return (rank[r.recommendation] || 0) > (rank[w] || 0) ? r.recommendation : w;
+      }, 'CLEAR');
+
+      const labels = { CLEAR: 'Disponível para registro', CAUTION: 'Atenção — conflitos potenciais', BLOCKED: 'Bloqueado — marca já registrada', ERROR: 'Erro na pesquisa' };
+
+      let html = `<div class="banner ${worst}">${labels[worst] || worst} — "${brand}"</div>`;
+
+      results.forEach(r => {
+        const blocking = r.blocking_conflicts || [];
+        const potential = r.potential_conflicts || [];
+        const safe = r.safe_matches || [];
+        const id = `card-${r.class}`;
+
+        html += `<div class="result-card">
+          <div class="card-header" onclick="document.getElementById('${id}').classList.toggle('open')">
+            <div><span class="card-class">Classe ${r.class}</span> <span class="card-desc">${r.class_description || ''}</span></div>
+            <div><span class="badge ${r.recommendation}">${r.recommendation}</span> <span class="card-desc">${r.total_results || 0} resultados</span></div>
+          </div>
+          <div class="card-body" id="${id}">
+            <p style="font-size:0.85rem;color:#555;margin-bottom:0.5rem">${r.summary || ''}</p>`;
+
+        if (blocking.length) {
+          html += conflictTable('Conflitos bloqueantes', blocking, 'BLOCKED');
+        }
+        if (potential.length) {
+          html += conflictTable('Conflitos potenciais', potential, 'CAUTION');
+        }
+        if (safe.length) {
+          html += conflictTable('Marcas seguras (arquivadas)', safe, 'CLEAR', true);
+        }
+
+        html += `</div></div>`;
+      });
+
+      resultsDiv.innerHTML = html;
+
+      // Auto-open cards with conflicts
+      results.forEach(r => {
+        if (r.recommendation !== 'CLEAR') {
+          const el = document.getElementById(`card-${r.class}`);
+          if (el) el.classList.add('open');
+        }
+      });
+    }
+
+    function conflictTable(title, items, type, collapsed = false) {
+      const id = `section-${title.replace(/\s/g, '-')}-${Math.random().toString(36).slice(2, 6)}`;
+      return `<div class="conflict-section">
+        <h4 onclick="document.getElementById('${id}').style.display = document.getElementById('${id}').style.display === 'none' ? '' : 'none'">
+          ${title} (${items.length})
+        </h4>
+        <table id="${id}" style="display:${collapsed ? 'none' : ''}">
+          <tr><th>Marca</th><th>Processo</th><th>Status</th><th>Titular</th></tr>
+          ${items.map(i => `<tr><td>${i.name || ''}</td><td>${i.process || ''}</td><td>${i.status || ''}</td><td>${i.holder || ''}</td></tr>`).join('')}
+        </table>
+      </div>`;
+    }
+  </script>
+</body>
+</html>
